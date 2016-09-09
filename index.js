@@ -7,11 +7,7 @@ var express = require('express');
 // We use express as simply web framework.
 var app = express();
 
-// Pass a commando line argument to select the user to render.
-// For example _minnur.
-var username = process.argv[2];
-var url = "https://www.instagram.com/" + username;
-app.get('/feed.xml', function (req, res) {
+var generateFeedFromUser = function (username, callable) {
   request(url, function (error, result) {
     var dom = jsdom(result.body);
     var result = dom.querySelectorAll('script[type="text/javascript"]');
@@ -45,7 +41,18 @@ app.get('/feed.xml', function (req, res) {
     });
 
     var output = feed.render('rss-2.0');
-    res.send(output);
+    callable(output);
+  };
+};
+
+// Pass a commando line argument to select the user to render.
+// For example _minnur.
+var username = process.argv[2];
+var url = "https://www.instagram.com/" + username;
+app.get('/feed.xml', function (req, res) {
+    generateFeedFromUser(function (output) {
+      res.send(output);
+    });
   });
 });
 
